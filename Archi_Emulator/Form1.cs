@@ -13,6 +13,7 @@ namespace Archi_Emulator
 {
     public partial class Form1 : Form
     {
+        string instructions;
         // constant
         public const string op_spliter = " ";
         public const char _spliter = ':';
@@ -23,7 +24,7 @@ namespace Archi_Emulator
         public string PC;
         public int Cycle_Nu;
 
-        // Pipeline Redister
+        // Pipeline Register
                                     // for sequntial excute
             // read only reg  
         public string r_IF_ID;
@@ -55,9 +56,10 @@ namespace Archi_Emulator
         // intial
         void intialize()
         {
-            intialze_reg_file_list();
-            intialize_mem_array();
-            PC = textBox1.Text;
+            intialze_reg_file_list();  // set register array value
+            intialize_mem_array();   // set memory array value
+            get_instruction();  // set instruction table
+            PC = textBox1.Text;   // set PC Intial value
             Cycle_Nu = 0;
         }
         public void intialze_reg_file_list()
@@ -73,6 +75,24 @@ namespace Archi_Emulator
             mem_array = new Hashtable();
             for (int i = 0; i < size; i++)
                 mem_array.Add ((100+(i*4)).ToString(),"99");
+        }
+
+        void get_instruction()
+        {
+            if (UserInput.Text.Length == 0)
+                return;
+            mem_intruction = new Hashtable();
+            instructions = UserInput.Text;
+            // seprete lines
+            string[] lines = instructions.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string[] _instruction = lines[i].Split(_spliter);
+                string pc = _instruction[0];
+                string op_instraction = _instruction[1];
+                mem_intruction.Add(pc, op_instraction);
+            }
         }
 
         // control unit
@@ -254,7 +274,21 @@ namespace Archi_Emulator
         // Fetch state
         public void Fetch()
         {
-            
+            if (mem_intruction.ContainsKey(PC))
+            {
+                string instruction = (string)mem_intruction[PC];
+                int _pc = convert_binary_decimal(PC) + 4;
+                PC = Convert.ToString(_pc, 2);
+                r_IF_ID = w_IF_ID;
+                w_IF_ID = PC + _spliter + instruction;
+            }
+            else
+            {
+                PC = "0000";
+                // End of PC sequance
+                // Application.Exit();
+            }
+            textBox1.Text = PC;
         }
 
         // Decode Statg
