@@ -516,7 +516,7 @@ namespace Archi_Emulator
             string _reg_dst = mem_wb[2];
             int reg_dst = Convert.ToInt32(_reg_dst, 2);
 
-            reg_file(0, 0, reg_dst, write_data, Convert.ToInt32(control_bits[7]),ref n1,ref n2);
+             reg_file(0, 0, reg_dst, write_data,Int32.Parse(control_bits[7].ToString()),ref n1,ref n2);
         }
 
         public void Cycle()
