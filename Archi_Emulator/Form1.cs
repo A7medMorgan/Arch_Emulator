@@ -27,15 +27,15 @@ namespace Archi_Emulator
         // Pipeline Register
                                     // for sequntial excute
             // read only reg  
-        public string r_IF_ID;
-        public string r_ID_EX;
-        public string r_EX_MEM;
-        public string r_MEM_WB;
+        public string r_IF_ID = null;
+        public string r_ID_EX = null;
+        public string r_EX_MEM = null;
+        public string r_MEM_WB = null;
             // write only reg
-        public string w_IF_ID;
-        public string w_ID_EX;
-        public string w_EX_MEM;
-        public string w_MEM_WB;
+        public string w_IF_ID = null;
+        public string w_ID_EX = null;
+        public string w_EX_MEM = null;
+        public string w_MEM_WB = null;
         
         // Register
         public string[] register_file;
@@ -72,6 +72,7 @@ namespace Archi_Emulator
         }
         public void write_reg_grid_view()
         {
+            dataGridView1.Rows.Clear();
             string value;
             for (int i = 1; i < reg_count; i++)
             {
@@ -90,12 +91,26 @@ namespace Archi_Emulator
         }
         public void write_mem_grid_view()
         {
+            dataGridView2.Rows.Clear();
             for (int i = 0; i < mem_size; i++)
             {
                 int key = (100 + (i * 4));
                 object[] rowdata = { key.ToString(), (string)mem_array[key.ToString()] };
                 dataGridView2.Rows.Add(rowdata);
             }
+        }
+
+        public void write_pipeline_grid_view()
+        {
+            dataGridView3.Rows.Clear();
+            object[] rowdata1 = { "IF/ID REGISTER", r_IF_ID };
+            dataGridView3.Rows.Add(rowdata1);
+            object[] rowdata2 = { "ID/EX REGISTER", r_ID_EX };
+            dataGridView3.Rows.Add(rowdata2);
+            object[] rowdata3 = { "EX/MEM REGISTER", r_EX_MEM };
+            dataGridView3.Rows.Add(rowdata3);
+            object[] rowdata4 = { "MEM/WB REGISTER", r_MEM_WB };
+            dataGridView3.Rows.Add(rowdata4);
         }
         void get_instruction()
         {
@@ -203,7 +218,7 @@ namespace Archi_Emulator
             int result;
             if (alu_op.Equals("00"))  // i type sw | lw
             {
-                result = Int32.Parse(data1) + Int32.Parse(data2);
+                result = Convert.ToInt32(data1,2) + Convert.ToInt32(data2,2);
                 return result.ToString();
             }
             else if (alu_op.Equals("10"))  // r type
@@ -237,9 +252,9 @@ namespace Archi_Emulator
         }
 
         // multiplexer hundeler
-        string MUX(string input1, string input2, int selector)
+        string MUX(string input1, string input2, char selector)
         {
-            if (selector == 0)
+            if (selector.Equals('0'))
             {
                 return input1;
             }
@@ -299,16 +314,18 @@ namespace Archi_Emulator
             if (mem_intruction.ContainsKey(PC))
             {
                 string instruction = (string)mem_intruction[PC];
-                r_IF_ID = w_IF_ID;
-                w_IF_ID = PC + _spliter + instruction;
 
                 //PC += 4;
-                int _pc = convert_binary_decimal(PC) + 4;
-                PC = Convert.ToString(_pc, 2);
+                int _pc = Convert.ToInt32(PC) + 4;
+                PC = Convert.ToString(_pc);
+
+                r_IF_ID = w_IF_ID;
+                w_IF_ID = PC + _spliter + instruction;
             }
             else
             {
                 PC = "0000";
+
                 // End of PC sequance
             }
             textBox1.Text = PC;
@@ -319,6 +336,9 @@ namespace Archi_Emulator
 
         public void Decode()
         {
+            if (r_IF_ID == null)
+                return;
+
             string read_reg1 = null, read_reg2= null, address_extented = null, rt = null, rd=null;
 
             string[] if_id = r_IF_ID.Split(_spliter);  //get the register PL value
@@ -329,8 +349,8 @@ namespace Archi_Emulator
 
             string control_bits = control_unit(op_parts[0]); // activate the control unit and get the instructions bits
 
-            int rs = convert_binary_decimal(op_parts[1]);  // rs       // convert string bits to int  integer address acces
-            int _rt = convert_binary_decimal(op_parts[2]); // rt          // convert string bits to int
+            int rs = Convert.ToInt32(op_parts[1],2);  // rs       // convert string bits to int  integer address acces
+            int _rt =  Convert.ToInt32(op_parts[2],2); // rt          // convert string bits to int
 
             int reg_write = Int32.Parse(control_bits[9].ToString()); // get reg_write bit
 
@@ -339,35 +359,105 @@ namespace Archi_Emulator
                 int i = reg_file(rs, _rt, 0, null, reg_write, ref read_reg1, ref read_reg2);
                 rt = op_parts[2];  // get rt to pass
                 rd = op_parts[3];  // get rd  to pass 
-                address_extented = Sign_Extend(op_parts[3] + op_parts[4] + op_parts[5]);
+                address_extented = Sign_Extend(op_parts[3] + op_parts[4] + op_parts[5]); // rd(5) + shamt(5) + fcode(6) bits
 
             }
             else if (type.Equals(i_type)) // sw
             {
-                int i = reg_file(rs, _rt, 0, null, reg_write, ref read_reg1, ref read_reg2);
+                //int i = reg_file(rs, _rt, 0, null, reg_write, ref read_reg1, ref read_reg2);
+                int i = reg_file(rs, _rt, 0, null, 0, ref read_reg1, ref read_reg2);
                 rt = op_parts[2];
                 rd = op_parts[3].Substring(0,5);  // get the rd from address
-                address_extented = Sign_Extend(op_parts[3]);
+                address_extented = Sign_Extend(op_parts[3]); 
 
             }
             r_ID_EX = w_ID_EX;
-            w_ID_EX = control_bits + op_spliter + read_reg1 + op_spliter + read_reg2 + op_spliter + address_extented + op_spliter + rt + op_spliter + rd;
+            w_ID_EX =if_id[0] + op_spliter + control_bits + op_spliter + read_reg1 + op_spliter + read_reg2 + op_spliter + address_extented + op_spliter + rt + op_spliter + rd;
         }
 
         //                 ####################### Excude ##########################
         // excude fun
         public void Excude()
         {
+            if (r_ID_EX == null)
+                return;
+
             string[] id_ex = r_ID_EX.Split(op_spliter[0]);
 
-            string control_bits = id_ex[0];
+            string control_bits = id_ex[1];
             string alu_op = control_bits[1] +""+ control_bits[2]; // get access for the alu operation bits
 
+            string data1 = id_ex[2];
+            string data2 = MUX(id_ex[3],id_ex[4],control_bits[3]);  // mux of data two input       mux alu_src
 
+            string fun_code = id_ex[4].Substring(26,6);// fun code 6 bits from the address extended
+
+            string result = ALU(data1, data2, alu_op, fun_code);
+
+            r_EX_MEM = w_EX_MEM;
+            w_EX_MEM =id_ex[0]+ op_spliter +"0" + op_spliter + result + op_spliter + id_ex[3] + op_spliter + control_bits + op_spliter + MUX(id_ex[5], id_ex[6], control_bits[0]);  // mux reg_dst
+
+        }
+
+        //                ########################### MEMORY #######################
+        // mem access
+        public void Memory()
+        {
+            if (r_EX_MEM == null)
+                return;
+
+            string[] ex_mem = r_EX_MEM.Split(op_spliter[0]);
+            string control_bits = ex_mem[4];
+            string reg_dst = ex_mem[5];
+
+            string alu_result = ex_mem[2];
+            string address = (Convert.ToInt32(alu_result, 2)+100).ToString();
+
+            string data = "-";
+            int result = mem_file(address, ex_mem[3],Convert.ToInt32(control_bits[7]),Convert.ToInt32(control_bits[6]),ref data);
+
+            r_MEM_WB = w_MEM_WB;
+            w_MEM_WB = data + op_spliter + alu_result + op_spliter + reg_dst + op_spliter + control_bits;
+        }
+
+        //            ########################## WRITE BACK ########################
+        // write back to reg
+        public void Write_back()
+        {
+            if (r_MEM_WB == null)
+                return;
+
+            string[] mem_wb = r_MEM_WB.Split(op_spliter[0]);
+            string control_bits = mem_wb[3];
+
+            string write_data = MUX(mem_wb[0], mem_wb[1],control_bits[10]); // mux  mem to reg
+                                //  alu_result(address) ,   read_data ,   mem_to_reg
+
+            string n1 = null, n2 = null;
+
+            string _reg_dst = mem_wb[2];
+            int reg_dst = Convert.ToInt32(_reg_dst, 2);
+
+            reg_file(0, 0, reg_dst, write_data, control_bits[9],ref n1,ref n2);
+        }
+
+        public void Cycle()
+        {
+            Fetch();
+            Decode();
+            Excude();
+            Memory();
+            Write_back();
+
+            Cycle_Nu++;
         }
         private void button1_Click(object sender, EventArgs e)
         {
             intialize();
+
+            string p = "01011";
+            string y = "01001";
+            Console.WriteLine(Convert.ToInt32(p,2)+1 + "&" + int.Parse(p)+1 + "&" + Int32.Parse(p)+Int32.Parse(y));
         }
 
         private void textBox2_TextChanged(object sender, EventArgs e)
@@ -375,9 +465,13 @@ namespace Archi_Emulator
 
         }
 
-        int convert_binary_decimal(string binary)
+
+        private void button2_Click(object sender, EventArgs e)
         {
-            return Convert.ToInt32(binary,2);
+            Cycle();
+
+            write_pipeline_grid_view();
+            button2.Text = "Cycle ::" + Cycle_Nu.ToString();
         }
     }
 }
