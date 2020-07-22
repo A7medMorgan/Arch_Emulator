@@ -201,7 +201,7 @@ namespace Archi_Emulator
             {
                 // not avalid instruction
             }
-            return excu + op_spliter + mem + op_spliter + wb;
+            return excu + mem + wb;
         }
 
         // register file hundeler
@@ -298,13 +298,13 @@ namespace Archi_Emulator
         // Sign Extended hundeler
         public string Sign_Extend(string offset)
         {
-            if (offset[0].Equals("0"))
+            if (offset[0].Equals('0'))
             {
-                return "0000000000000000" + offset;
+                return "0000000000000000".ToString() + offset;
             }
-            else if (offset[0].Equals("1"))
+            else if (offset[0].Equals('1'))
             {
-                return "1111111111111111" + offset;
+                return "1111111111111111".ToString() + offset;
             }
             return null;
         }
@@ -346,7 +346,6 @@ namespace Archi_Emulator
             
             if (_Fetch.Count != 0)
             {
-                Console.WriteLine(_Fetch.Count);
                 _PC = _Fetch.Dequeue();
             }
 
@@ -412,7 +411,7 @@ namespace Archi_Emulator
             int rs = Convert.ToInt32(op_parts[1],2);  // rs       // convert string bits to int  integer address acces
             int _rt =  Convert.ToInt32(op_parts[2],2); // rt          // convert string bits to int
 
-            //int reg_write = Int32.Parse(control_bits[9].ToString()); // get reg_write bit
+            //int reg_write = Int32.Parse(control_bits[7].ToString()); // get reg_write bit
 
             if (type.Equals(r_type))
             {
@@ -482,10 +481,11 @@ namespace Archi_Emulator
             string reg_dst = ex_mem[5];
 
             string alu_result = ex_mem[2];
-            string address = (Convert.ToInt32(alu_result, 2)+100).ToString();
+            //string address = (Convert.ToInt32(alu_result, 2)).ToString();
+            string address = alu_result;
 
-            string data = "-";
-            int result = mem_file(address, ex_mem[3],Convert.ToInt32(control_bits[7]),Convert.ToInt32(control_bits[6]),ref data);
+             string data = "-";
+            int result = mem_file(address, ex_mem[3],Convert.ToInt32(control_bits[6]),Convert.ToInt32(control_bits[5]),ref data);
 
             w_MEM_WB = data + op_spliter + alu_result + op_spliter + reg_dst + op_spliter + control_bits;
 
@@ -508,7 +508,7 @@ namespace Archi_Emulator
             string[] mem_wb = r_MEM_WB.Split(op_spliter[0]);
             string control_bits = mem_wb[3];
 
-            string write_data = MUX(mem_wb[0], mem_wb[1],control_bits[10]); // mux  mem to reg
+            string write_data = MUX( mem_wb[1], mem_wb[0], control_bits[8]); // mux  mem to reg
                                 //  alu_result(address) ,   read_data ,   mem_to_reg
 
             string n1 = null, n2 = null;
@@ -516,7 +516,7 @@ namespace Archi_Emulator
             string _reg_dst = mem_wb[2];
             int reg_dst = Convert.ToInt32(_reg_dst, 2);
 
-            reg_file(0, 0, reg_dst, write_data, control_bits[9],ref n1,ref n2);
+            reg_file(0, 0, reg_dst, write_data, Convert.ToInt32(control_bits[7]),ref n1,ref n2);
         }
 
         public void Cycle()
@@ -533,9 +533,9 @@ namespace Archi_Emulator
         {
             intialize();
 
-            string p = "01011";
-            string y = "01001";
-            Console.WriteLine(Convert.ToInt32(p,2)+1 + "&" + int.Parse(p)+1 + "&" + Int32.Parse(p)+Int32.Parse(y));
+            //string p = "01011";
+            //string y = "01001";
+            //Console.WriteLine(Convert.ToInt32(p,2)+1 + "&" + int.Parse(p)+1 + "&" + Int32.Parse(p)+Int32.Parse(y));
         }
 
         private void textBox2_TextChanged(object sender, EventArgs e)
@@ -549,6 +549,9 @@ namespace Archi_Emulator
             Cycle();
 
             write_pipeline_grid_view();
+            write_reg_grid_view();
+            write_mem_grid_view();
+
             button2.Text = "Cycle ::" + Cycle_Nu.ToString();
         }
     }
