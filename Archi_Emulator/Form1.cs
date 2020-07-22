@@ -21,7 +21,7 @@ namespace Archi_Emulator
         public const string i_type = "101011";
 
         // Program Counter
-        public string PC;
+        public string PC;  // reg value
         public int Cycle_Nu;
 
         // Pipeline Register
@@ -40,8 +40,9 @@ namespace Archi_Emulator
         // Register
         public string[] register_file;
         public const int reg_count = 32;
-        
+
         //Memory
+        int mem_size = 1024;
         public Hashtable mem_array;
         
         //Instruction
@@ -51,7 +52,6 @@ namespace Archi_Emulator
         public Form1()
         {
             InitializeComponent();
-            intialize();
         }
         // intial
         void intialize()
@@ -68,15 +68,35 @@ namespace Archi_Emulator
             register_file[0] = "0";
             for (int i = 1; i < reg_count; i++)
                 register_file[i] = (i + 100).ToString();
+            write_reg_grid_view();
+        }
+        public void write_reg_grid_view()
+        {
+            string value;
+            for (int i = 1; i < reg_count; i++)
+            {
+                value = register_file[i];
+                object[] rowdata = { "$" + i.ToString(), value };
+                dataGridView1.Rows.Add(rowdata);
+            }
         }
         public void intialize_mem_array()
         {
-            int size = 1024;
+           
             mem_array = new Hashtable();
-            for (int i = 0; i < size; i++)
+            for (int i = 0; i < mem_size; i++)
                 mem_array.Add ((100+(i*4)).ToString(),"99");
+            write_mem_grid_view();
         }
-
+        public void write_mem_grid_view()
+        {
+            for (int i = 0; i < mem_size; i++)
+            {
+                int key = (100 + (i * 4));
+                object[] rowdata = { key.ToString(), (string)mem_array[key.ToString()] };
+                dataGridView2.Rows.Add(rowdata);
+            }
+        }
         void get_instruction()
         {
             if (UserInput.Text.Length == 0)
@@ -200,11 +220,13 @@ namespace Archi_Emulator
                 }
                 else if (func_code.Equals("100100")) // AND
                 {
-
+                    result = Int32.Parse(data1) & Int32.Parse(data2);
+                    return result.ToString();
                 }
                 else if (func_code.Equals("100101"))  // OR
                 {
-
+                    result = Int32.Parse(data1) | Int32.Parse(data2);
+                    return result.ToString();
                 }
                 else
                 {
@@ -270,27 +292,29 @@ namespace Archi_Emulator
             }
             return null;
         }
-
+        //                               ###################### Fetch #################################
         // Fetch state
         public void Fetch()
         {
             if (mem_intruction.ContainsKey(PC))
             {
                 string instruction = (string)mem_intruction[PC];
-                int _pc = convert_binary_decimal(PC) + 4;
-                PC = Convert.ToString(_pc, 2);
                 r_IF_ID = w_IF_ID;
                 w_IF_ID = PC + _spliter + instruction;
+
+                //PC += 4;
+                int _pc = convert_binary_decimal(PC) + 4;
+                PC = Convert.ToString(_pc, 2);
             }
             else
             {
                 PC = "0000";
                 // End of PC sequance
-                // Application.Exit();
             }
             textBox1.Text = PC;
         }
 
+        //                              ##################### Decode ################################
         // Decode Statg
 
         public void Decode()
@@ -329,9 +353,21 @@ namespace Archi_Emulator
             r_ID_EX = w_ID_EX;
             w_ID_EX = control_bits + op_spliter + read_reg1 + op_spliter + read_reg2 + op_spliter + address_extented + op_spliter + rt + op_spliter + rd;
         }
+
+        //                 ####################### Excude ##########################
+        // excude fun
+        public void Excude()
+        {
+            string[] id_ex = r_ID_EX.Split(op_spliter[0]);
+
+            string control_bits = id_ex[0];
+            string alu_op = control_bits[1] +""+ control_bits[2]; // get access for the alu operation bits
+
+
+        }
         private void button1_Click(object sender, EventArgs e)
         {
-
+            intialize();
         }
 
         private void textBox2_TextChanged(object sender, EventArgs e)
