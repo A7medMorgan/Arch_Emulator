@@ -82,9 +82,7 @@
             this.UserInput.Name = "UserInput";
             this.UserInput.Size = new System.Drawing.Size(322, 272);
             this.UserInput.TabIndex = 3;
-            this.UserInput.Text = "1000:00000000 00000000 00000000 00000000\r\n1004:00000000 00000000 00000000 0000000" +
-    "0\r\n1008:00000000 00000000 00000000 00000000\r\n1012:00000000 00000000 00000000 000" +
-    "00000";
+            this.UserInput.Text = "1000:0000000000100010000110000100000";
             // 
             // dataGridView1
             // 

@@ -17,6 +17,7 @@ namespace Archi_Emulator
         // constant
         public const string op_spliter = " ";
         public const char _spliter = ':';
+        public const string operation = "#";
         public const string r_type = "000000";
         public const string i_type = "101011";
 
@@ -48,6 +49,13 @@ namespace Archi_Emulator
         //Instruction
         public Hashtable mem_intruction;
 
+        // Clock
+        public static Queue<string> _Fetch = new Queue<string>();
+        public static Queue<string> _Decode = new Queue<string>();
+        public static Queue<string> _Excude = new Queue<string>();
+        public static Queue<string> _Memory = new Queue<string>();
+        public static Queue<string> _Write_back = new Queue<string>();
+
 
         public Form1()
         {
@@ -59,8 +67,31 @@ namespace Archi_Emulator
             intialze_reg_file_list();  // set register array value
             intialize_mem_array();   // set memory array value
             get_instruction();  // set instruction table
+            Hundel_clock();  // to make the gape between the cycles
             PC = textBox1.Text;   // set PC Intial value
             Cycle_Nu = 0;
+        }
+        void Hundel_clock()
+        {
+            _Fetch.Enqueue(PC);  // refer to operation
+
+            // Decode gape
+            _Decode.Enqueue(operation);
+            
+            //Exute Gape
+            _Excude.Enqueue(operation);
+            _Excude.Enqueue(operation);
+           
+            //Memory Gape
+            _Memory.Enqueue(operation);
+            _Memory.Enqueue(operation);
+            _Memory.Enqueue(operation);
+            
+            // Write back gape
+            _Write_back.Enqueue(operation);
+            _Write_back.Enqueue(operation);
+            _Write_back.Enqueue(operation);
+            _Write_back.Enqueue(operation);
         }
         public void intialze_reg_file_list()
         {
@@ -103,13 +134,13 @@ namespace Archi_Emulator
         public void write_pipeline_grid_view()
         {
             dataGridView3.Rows.Clear();
-            object[] rowdata1 = { "IF/ID REGISTER", r_IF_ID };
+            object[] rowdata1 = { "IF/ID REGISTER", w_IF_ID };
             dataGridView3.Rows.Add(rowdata1);
-            object[] rowdata2 = { "ID/EX REGISTER", r_ID_EX };
+            object[] rowdata2 = { "ID/EX REGISTER", w_ID_EX };
             dataGridView3.Rows.Add(rowdata2);
-            object[] rowdata3 = { "EX/MEM REGISTER", r_EX_MEM };
+            object[] rowdata3 = { "EX/MEM REGISTER", w_EX_MEM };
             dataGridView3.Rows.Add(rowdata3);
-            object[] rowdata4 = { "MEM/WB REGISTER", r_MEM_WB };
+            object[] rowdata4 = { "MEM/WB REGISTER", w_MEM_WB };
             dataGridView3.Rows.Add(rowdata4);
         }
         void get_instruction()
@@ -311,23 +342,46 @@ namespace Archi_Emulator
         // Fetch state
         public void Fetch()
         {
+            string _PC = null;
+            
+            if (_Fetch.Count != 0)
+            {
+                Console.WriteLine(_Fetch.Count);
+                _PC = _Fetch.Dequeue();
+            }
+
+
+            string instruction = null;
             if (mem_intruction.ContainsKey(PC))
             {
-                string instruction = (string)mem_intruction[PC];
+                instruction = (string)mem_intruction[PC];
 
                 //PC += 4;
                 int _pc = Convert.ToInt32(PC) + 4;
                 PC = Convert.ToString(_pc);
 
-                r_IF_ID = w_IF_ID;
+                _Fetch.Enqueue(PC);
+
                 w_IF_ID = PC + _spliter + instruction;
+
+                _Decode.Enqueue(w_IF_ID);
             }
             else
             {
                 PC = "0000";
-
                 // End of PC sequance
             }
+            
+
+            //string instruction = (string)mem_intruction[PC];
+            //r_IF_ID = w_IF_ID;
+            //w_IF_ID = PC + _spliter + instruction;
+
+            //if (instruction != null)
+            //{
+            //    int _pc = Convert.ToInt32(PC) + 4;
+            //    PC = Convert.ToString(_pc);
+            //}
             textBox1.Text = PC;
         }
 
@@ -336,7 +390,13 @@ namespace Archi_Emulator
 
         public void Decode()
         {
-            if (r_IF_ID == null)
+            if (_Decode.Count != 0)
+            {
+               r_IF_ID = _Decode.Dequeue();
+                if (r_IF_ID == operation)
+                    return;
+            }
+            else
                 return;
 
             string read_reg1 = null, read_reg2= null, address_extented = null, rt = null, rd=null;
@@ -352,11 +412,11 @@ namespace Archi_Emulator
             int rs = Convert.ToInt32(op_parts[1],2);  // rs       // convert string bits to int  integer address acces
             int _rt =  Convert.ToInt32(op_parts[2],2); // rt          // convert string bits to int
 
-            int reg_write = Int32.Parse(control_bits[9].ToString()); // get reg_write bit
+            //int reg_write = Int32.Parse(control_bits[9].ToString()); // get reg_write bit
 
             if (type.Equals(r_type))
             {
-                int i = reg_file(rs, _rt, 0, null, reg_write, ref read_reg1, ref read_reg2);
+                int i = reg_file(rs, _rt, 0, null, 0, ref read_reg1, ref read_reg2);
                 rt = op_parts[2];  // get rt to pass
                 rd = op_parts[3];  // get rd  to pass 
                 address_extented = Sign_Extend(op_parts[3] + op_parts[4] + op_parts[5]); // rd(5) + shamt(5) + fcode(6) bits
@@ -371,15 +431,21 @@ namespace Archi_Emulator
                 address_extented = Sign_Extend(op_parts[3]); 
 
             }
-            r_ID_EX = w_ID_EX;
             w_ID_EX =if_id[0] + op_spliter + control_bits + op_spliter + read_reg1 + op_spliter + read_reg2 + op_spliter + address_extented + op_spliter + rt + op_spliter + rd;
+            _Excude.Enqueue(w_ID_EX);
         }
 
         //                 ####################### Excude ##########################
         // excude fun
         public void Excude()
         {
-            if (r_ID_EX == null)
+            if (_Excude.Count != 0)
+            {
+                r_ID_EX = _Excude.Dequeue();
+                if (r_ID_EX == operation)
+                    return;
+            }
+            else
                 return;
 
             string[] id_ex = r_ID_EX.Split(op_spliter[0]);
@@ -394,16 +460,21 @@ namespace Archi_Emulator
 
             string result = ALU(data1, data2, alu_op, fun_code);
 
-            r_EX_MEM = w_EX_MEM;
             w_EX_MEM =id_ex[0]+ op_spliter +"0" + op_spliter + result + op_spliter + id_ex[3] + op_spliter + control_bits + op_spliter + MUX(id_ex[5], id_ex[6], control_bits[0]);  // mux reg_dst
-
+            _Memory.Enqueue(w_EX_MEM);
         }
 
         //                ########################### MEMORY #######################
         // mem access
         public void Memory()
         {
-            if (r_EX_MEM == null)
+            if (_Memory.Count != 0)
+            {
+               r_EX_MEM = _Memory.Dequeue();
+                if (r_EX_MEM == operation)
+                    return;
+            }
+            else
                 return;
 
             string[] ex_mem = r_EX_MEM.Split(op_spliter[0]);
@@ -416,15 +487,22 @@ namespace Archi_Emulator
             string data = "-";
             int result = mem_file(address, ex_mem[3],Convert.ToInt32(control_bits[7]),Convert.ToInt32(control_bits[6]),ref data);
 
-            r_MEM_WB = w_MEM_WB;
             w_MEM_WB = data + op_spliter + alu_result + op_spliter + reg_dst + op_spliter + control_bits;
+
+            _Write_back.Enqueue(w_MEM_WB);
         }
 
         //            ########################## WRITE BACK ########################
         // write back to reg
         public void Write_back()
         {
-            if (r_MEM_WB == null)
+            if (_Write_back.Count != 0)
+            {
+                r_MEM_WB = _Write_back.Dequeue();
+                if (r_MEM_WB == operation)
+                    return;
+            }
+            else
                 return;
 
             string[] mem_wb = r_MEM_WB.Split(op_spliter[0]);
