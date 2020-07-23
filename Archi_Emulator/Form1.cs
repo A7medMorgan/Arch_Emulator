@@ -43,7 +43,7 @@ namespace Archi_Emulator
         public const int reg_count = 32;
 
         //Memory
-        int mem_size = 1024;
+        int mem_size = 256;
         public Hashtable mem_array;
         
         //Instruction
@@ -145,8 +145,7 @@ namespace Archi_Emulator
         }
         void get_instruction()
         {
-            if (UserInput.Text.Length == 0)
-                return;
+
             mem_intruction = new Hashtable();
             instructions = UserInput.Text;
             // seprete lines
@@ -184,7 +183,7 @@ namespace Archi_Emulator
             }
             else if (op_code.Equals(i_type)) // i_type sw
             {
-                reg_dst = "-";
+                reg_dst = "x";
                 aluop1 = "0";
                 aluop0 = "0";
                 alusrc = "1";
@@ -194,7 +193,7 @@ namespace Archi_Emulator
                 mem_write = "1";
                 mem = bruch + mem_read + mem_write;
                 reg_write = "0";
-                mem_to_reg = "-";
+                mem_to_reg = "x";
                 wb = reg_write + mem_to_reg;
             }
             else
@@ -206,7 +205,7 @@ namespace Archi_Emulator
 
         // register file hundeler
 
-        int reg_file(int read_reg_1, int read_reg_2, int write_reg, string write_date, int flag_reg_write, ref string reg1_read, ref string reg2_read)
+        int reg_file(int read_reg_1, int read_reg_2, int write_reg, string write_data, int flag_reg_write, ref string reg1_read, ref string reg2_read)
         {
             if (flag_reg_write == 0)
             {
@@ -216,7 +215,7 @@ namespace Archi_Emulator
             }
             else if (flag_reg_write == 1)
             {
-                register_file[write_reg] = write_date;
+                register_file[write_reg] = write_data;
             }
             return 0;
         }
@@ -249,7 +248,9 @@ namespace Archi_Emulator
             int result;
             if (alu_op.Equals("00"))  // i type sw | lw
             {
-                result = Convert.ToInt32(data1,2) + Convert.ToInt32(data2,2);
+                // result = Convert.ToInt32(data1,2) + Convert.ToInt32(data2,2);
+                result = Int32.Parse(data1) + Convert.ToInt32(Int32.Parse(data2));
+                //result = Int32.Parse(data2);
                 return result.ToString();
             }
             else if (alu_op.Equals("10"))  // r type
@@ -350,10 +351,9 @@ namespace Archi_Emulator
             }
 
 
-            string instruction = null;
             if (mem_intruction.ContainsKey(PC))
             {
-                instruction = (string)mem_intruction[PC];
+                string instruction = (string)mem_intruction[PC];
 
                 //PC += 4;
                 int _pc = Convert.ToInt32(PC) + 4;
@@ -381,6 +381,7 @@ namespace Archi_Emulator
             //    int _pc = Convert.ToInt32(PC) + 4;
             //    PC = Convert.ToString(_pc);
             //}
+
             textBox1.Text = PC;
         }
 
@@ -406,12 +407,12 @@ namespace Archi_Emulator
             string type=null;
             string[] op_parts = (OP_format(if_id[1], ref type)).Split(op_spliter[0]); // seprate the operation part
 
-            string control_bits = control_unit(op_parts[0]); // activate the control unit and get the instructions bits
+            string control_bits = control_unit(type); // activate the control unit and get the instructions bits
 
             int rs = Convert.ToInt32(op_parts[1],2);  // rs       // convert string bits to int  integer address acces
             int _rt =  Convert.ToInt32(op_parts[2],2); // rt          // convert string bits to int
 
-            //int reg_write = Int32.Parse(control_bits[7].ToString()); // get reg_write bit
+            int reg_write = Int32.Parse(control_bits[7].ToString()); // get reg_write bit
 
             if (type.Equals(r_type))
             {
@@ -423,20 +424,20 @@ namespace Archi_Emulator
             }
             else if (type.Equals(i_type)) // sw
             {
-                //int i = reg_file(rs, _rt, 0, null, reg_write, ref read_reg1, ref read_reg2);
-                int i = reg_file(rs, _rt, 0, null, 0, ref read_reg1, ref read_reg2);
+                int i = reg_file(rs, _rt, 0, null, reg_write, ref read_reg1, ref read_reg2);
+                //int i = reg_file(rs, _rt, 0, null, 0, ref read_reg1, ref read_reg2);
                 rt = op_parts[2];
                 rd = op_parts[3].Substring(0,5);  // get the rd from address
                 address_extented = Sign_Extend(op_parts[3]); 
 
             }
-            w_ID_EX =if_id[0] + op_spliter + control_bits + op_spliter + read_reg1 + op_spliter + read_reg2 + op_spliter + address_extented + op_spliter + rt + op_spliter + rd;
+            w_ID_EX = control_bits + op_spliter + if_id[0] + op_spliter + read_reg1 + op_spliter + read_reg2 + op_spliter + address_extented + op_spliter + rt + op_spliter + rd;
             _Excude.Enqueue(w_ID_EX);
         }
 
-        //                 ####################### Excude ##########################
-        // excude fun
-        public void Excude()
+        //                 ####################### Excute ##########################
+        // excute fun
+        public void Excute()
         {
             if (_Excude.Count != 0)
             {
@@ -449,7 +450,7 @@ namespace Archi_Emulator
 
             string[] id_ex = r_ID_EX.Split(op_spliter[0]);
 
-            string control_bits = id_ex[1];
+            string control_bits = id_ex[0];
             string alu_op = control_bits[1] +""+ control_bits[2]; // get access for the alu operation bits
 
             string data1 = id_ex[2];
@@ -459,7 +460,7 @@ namespace Archi_Emulator
 
             string result = ALU(data1, data2, alu_op, fun_code);
 
-            w_EX_MEM =id_ex[0]+ op_spliter +"0" + op_spliter + result + op_spliter + id_ex[3] + op_spliter + control_bits + op_spliter + MUX(id_ex[5], id_ex[6], control_bits[0]);  // mux reg_dst
+            w_EX_MEM = control_bits + op_spliter + id_ex[1]+ op_spliter +"0" + op_spliter + result + op_spliter + id_ex[3] + op_spliter +  MUX(id_ex[5], id_ex[6], control_bits[0]);  // mux reg_dst
             _Memory.Enqueue(w_EX_MEM);
         }
 
@@ -477,17 +478,17 @@ namespace Archi_Emulator
                 return;
 
             string[] ex_mem = r_EX_MEM.Split(op_spliter[0]);
-            string control_bits = ex_mem[4];
+            string control_bits = ex_mem[0];
             string reg_dst = ex_mem[5];
 
-            string alu_result = ex_mem[2];
+            string alu_result = ex_mem[3];
             //string address = (Convert.ToInt32(alu_result, 2)).ToString();
             string address = alu_result;
 
-             string data = "-";
-            int result = mem_file(address, ex_mem[3],Convert.ToInt32(control_bits[6]),Convert.ToInt32(control_bits[5]),ref data);
+             string data = "X";
+            int result = mem_file(address, ex_mem[4],Convert.ToInt32(control_bits[6]),Convert.ToInt32(control_bits[5]),ref data);
 
-            w_MEM_WB = data + op_spliter + alu_result + op_spliter + reg_dst + op_spliter + control_bits;
+            w_MEM_WB = control_bits + op_spliter + alu_result + op_spliter + data + op_spliter + reg_dst  ;
 
             _Write_back.Enqueue(w_MEM_WB);
         }
@@ -506,14 +507,14 @@ namespace Archi_Emulator
                 return;
 
             string[] mem_wb = r_MEM_WB.Split(op_spliter[0]);
-            string control_bits = mem_wb[3];
+            string control_bits = mem_wb[0];
 
-            string write_data = MUX( mem_wb[1], mem_wb[0], control_bits[8]); // mux  mem to reg
+            string write_data = MUX( mem_wb[1], mem_wb[2], control_bits[8]); // mux  mem to reg
                                 //  alu_result(address) ,   read_data ,   mem_to_reg
 
             string n1 = null, n2 = null;
 
-            string _reg_dst = mem_wb[2];
+            string _reg_dst = mem_wb[3];
             int reg_dst = Convert.ToInt32(_reg_dst, 2);
 
              reg_file(0, 0, reg_dst, write_data,Int32.Parse(control_bits[7].ToString()),ref n1,ref n2);
@@ -523,7 +524,7 @@ namespace Archi_Emulator
         {
             Fetch();
             Decode();
-            Excude();
+            Excute();
             Memory();
             Write_back();
 
@@ -546,6 +547,12 @@ namespace Archi_Emulator
 
         private void button2_Click(object sender, EventArgs e)
         {
+            if (_Fetch.Count == 0 && _Decode.Count == 0 && _Excude.Count == 0 && _Memory.Count == 0 && _Write_back.Count == 0)
+            {
+                button2.Text = "Cycle count : " + Cycle_Nu;
+                button2.Enabled = false;
+                return;
+            }
             Cycle();
 
             write_pipeline_grid_view();

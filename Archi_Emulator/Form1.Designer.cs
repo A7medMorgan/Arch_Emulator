@@ -82,7 +82,8 @@
             this.UserInput.Name = "UserInput";
             this.UserInput.Size = new System.Drawing.Size(322, 272);
             this.UserInput.TabIndex = 3;
-            this.UserInput.Text = "1000:00000000001000100001100000100000";
+            this.UserInput.Text = "1000:00000000001000100001100000100000\r\n1004:00000000011000100010100000100010\r\n100" +
+    "8:10101101001010000000000001101000";
             // 
             // dataGridView1
             // 
@@ -92,7 +93,7 @@
             this.val});
             this.dataGridView1.Location = new System.Drawing.Point(340, 40);
             this.dataGridView1.Name = "dataGridView1";
-            this.dataGridView1.Size = new System.Drawing.Size(245, 303);
+            this.dataGridView1.Size = new System.Drawing.Size(259, 303);
             this.dataGridView1.TabIndex = 4;
             // 
             // reg
@@ -111,9 +112,9 @@
             this.dataGridView2.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Address,
             this.Value});
-            this.dataGridView2.Location = new System.Drawing.Point(840, 40);
+            this.dataGridView2.Location = new System.Drawing.Point(652, 238);
             this.dataGridView2.Name = "dataGridView2";
-            this.dataGridView2.Size = new System.Drawing.Size(240, 303);
+            this.dataGridView2.Size = new System.Drawing.Size(387, 207);
             this.dataGridView2.TabIndex = 5;
             // 
             // Address
@@ -132,20 +133,24 @@
             this.dataGridView3.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.dataGridViewTextBoxColumn1,
             this.dataGridViewTextBoxColumn2});
-            this.dataGridView3.Location = new System.Drawing.Point(589, 40);
+            this.dataGridView3.Location = new System.Drawing.Point(605, 12);
             this.dataGridView3.Name = "dataGridView3";
-            this.dataGridView3.Size = new System.Drawing.Size(245, 303);
+            this.dataGridView3.Size = new System.Drawing.Size(434, 220);
             this.dataGridView3.TabIndex = 6;
             // 
             // dataGridViewTextBoxColumn1
             // 
             this.dataGridViewTextBoxColumn1.HeaderText = "PipeLine Reg";
             this.dataGridViewTextBoxColumn1.Name = "dataGridViewTextBoxColumn1";
+            this.dataGridViewTextBoxColumn1.ReadOnly = true;
             // 
             // dataGridViewTextBoxColumn2
             // 
+            this.dataGridViewTextBoxColumn2.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
             this.dataGridViewTextBoxColumn2.HeaderText = "Value";
             this.dataGridViewTextBoxColumn2.Name = "dataGridViewTextBoxColumn2";
+            this.dataGridViewTextBoxColumn2.ReadOnly = true;
+            this.dataGridViewTextBoxColumn2.Width = 58;
             // 
             // label1
             // 
@@ -192,9 +197,9 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn Address;
         private System.Windows.Forms.DataGridViewTextBoxColumn Value;
         private System.Windows.Forms.DataGridView dataGridView3;
+        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn1;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn2;
-        private System.Windows.Forms.Label label1;
     }
 }
 
