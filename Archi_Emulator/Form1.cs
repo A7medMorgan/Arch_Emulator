@@ -67,11 +67,29 @@ namespace Archi_Emulator
             intialze_reg_file_list();  // set register array value
             intialize_mem_array();   // set memory array value
             get_instruction();  // set instruction table
-            Hundel_clock();  // to make the gape between the cycles
+            Handeler_clock();  // to make the gape between the cycles
+            reset_pipeline();
             PC = textBox1.Text;   // set PC Intial value
             Cycle_Nu = 0;
         }
-        void Hundel_clock()
+        void reset_pipeline()
+        {
+             // read only reg  
+         r_IF_ID = null;
+         r_ID_EX = null;
+         r_EX_MEM = null;
+         r_MEM_WB = null;
+        // write only reg
+         w_IF_ID = null;
+         w_ID_EX = null;
+         w_EX_MEM = null;
+         w_MEM_WB = null;
+            write_pipeline_grid_view();
+            Cycle_Nu = 0;
+            button2.Enabled = true;
+            button2.Text = "Cycle ::" + Cycle_Nu.ToString();
+        }
+        void Handeler_clock()
         {
             _Fetch.Enqueue(PC);  // refer to operation
 
@@ -105,7 +123,7 @@ namespace Archi_Emulator
         {
             dataGridView1.Rows.Clear();
             string value;
-            for (int i = 1; i < reg_count; i++)
+            for (int i = 0; i < reg_count; i++)
             {
                 value = register_file[i];
                 object[] rowdata = { "$" + i.ToString(), value };
@@ -117,7 +135,7 @@ namespace Archi_Emulator
            
             mem_array = new Hashtable();
             for (int i = 0; i < mem_size; i++)
-                mem_array.Add ((100+(i*4)).ToString(),"99");
+                mem_array.Add ((99+(i)).ToString(),"99");
             write_mem_grid_view();
         }
         public void write_mem_grid_view()
@@ -125,8 +143,8 @@ namespace Archi_Emulator
             dataGridView2.Rows.Clear();
             for (int i = 0; i < mem_size; i++)
             {
-                int key = (100 + (i * 4));
-                object[] rowdata = { key.ToString(), (string)mem_array[key.ToString()] };
+                int key = (99 + (i));
+                object[] rowdata = {"0x"+key.ToString(), (string)mem_array[key.ToString()] };
                 dataGridView2.Rows.Add(rowdata);
             }
         }
@@ -249,7 +267,7 @@ namespace Archi_Emulator
             if (alu_op.Equals("00"))  // i type sw | lw
             {
                 // result = Convert.ToInt32(data1,2) + Convert.ToInt32(data2,2);
-                result = Int32.Parse(data1) + Convert.ToInt32(Int32.Parse(data2));
+                result = Int32.Parse(data1) + Convert.ToInt32(data2,2);
                 //result = Int32.Parse(data2);
                 return result.ToString();
             }
@@ -486,7 +504,7 @@ namespace Archi_Emulator
             string address = alu_result;
 
              string data = "X";
-            int result = mem_file(address, ex_mem[4],Convert.ToInt32(control_bits[6]),Convert.ToInt32(control_bits[5]),ref data);
+            int result = mem_file(address, ex_mem[4],Int32.Parse(control_bits[6].ToString()),Int32.Parse(control_bits[5].ToString()),ref data);
 
             w_MEM_WB = control_bits + op_spliter + alu_result + op_spliter + data + op_spliter + reg_dst  ;
 
@@ -547,12 +565,7 @@ namespace Archi_Emulator
 
         private void button2_Click(object sender, EventArgs e)
         {
-            if (_Fetch.Count == 0 && _Decode.Count == 0 && _Excude.Count == 0 && _Memory.Count == 0 && _Write_back.Count == 0)
-            {
-                button2.Text = "Cycle count : " + Cycle_Nu;
-                button2.Enabled = false;
-                return;
-            }
+            
             Cycle();
 
             write_pipeline_grid_view();
@@ -560,6 +573,14 @@ namespace Archi_Emulator
             write_mem_grid_view();
 
             button2.Text = "Cycle ::" + Cycle_Nu.ToString();
+
+            if (_Fetch.Count == 0 && _Decode.Count == 0 && _Excude.Count == 0 && _Memory.Count == 0 && _Write_back.Count == 0)
+            {
+                button2.Text = "Cycle count : " + Cycle_Nu;
+                button2.Enabled = false;
+
+                return;
+            }
         }
     }
 }

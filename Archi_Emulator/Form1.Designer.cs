@@ -42,6 +42,7 @@
             this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.label1 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView3)).BeginInit();
@@ -82,8 +83,9 @@
             this.UserInput.Name = "UserInput";
             this.UserInput.Size = new System.Drawing.Size(322, 272);
             this.UserInput.TabIndex = 3;
-            this.UserInput.Text = "1000:00000000001000100001100000100000\r\n1004:00000000011000100010100000100010\r\n100" +
-    "8:10101101001010000000000001101000";
+            this.UserInput.Text = "1000:00000000101001100000000000100101\r\n1004:00000000010000110010000000100000\r\n100" +
+    "8:00000000111010000011000000100010\r\n1012:10101100101000100000000000011110\r\n1016:" +
+    "00000000110001010000000000100000";
             // 
             // dataGridView1
             // 
@@ -161,11 +163,21 @@
             this.label1.TabIndex = 7;
             this.label1.Text = "PC";
             // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(12, 24);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(58, 13);
+            this.label2.TabIndex = 8;
+            this.label2.Text = "User Input";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1092, 457);
+            this.ClientSize = new System.Drawing.Size(1045, 457);
+            this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.dataGridView3);
             this.Controls.Add(this.dataGridView2);
@@ -200,6 +212,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn1;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn2;
+        private System.Windows.Forms.Label label2;
     }
 }
 
