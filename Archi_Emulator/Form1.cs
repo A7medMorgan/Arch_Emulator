@@ -50,11 +50,11 @@ namespace Archi_Emulator
         public Hashtable mem_intruction;
 
         // Clock
-        public static Queue<string> _Fetch = new Queue<string>();
-        public static Queue<string> _Decode = new Queue<string>();
-        public static Queue<string> _Excude = new Queue<string>();
-        public static Queue<string> _Memory = new Queue<string>();
-        public static Queue<string> _Write_back = new Queue<string>();
+        public static Queue<string> _Fetch ;
+        public static Queue<string> _Decode ;
+        public static Queue<string> _Excude ;
+        public static Queue<string> _Memory ;
+        public static Queue<string> _Write_back;
 
 
         public Form1()
@@ -67,9 +67,9 @@ namespace Archi_Emulator
             intialze_reg_file_list();  // set register array value
             intialize_mem_array();   // set memory array value
             get_instruction();  // set instruction table
+            PC = textBox1.Text;   // set PC Intial value
             Handeler_clock();  // to make the gape between the cycles
             reset_pipeline();
-            PC = textBox1.Text;   // set PC Intial value
             Cycle_Nu = 0;
         }
         void reset_pipeline()
@@ -91,6 +91,12 @@ namespace Archi_Emulator
         }
         void Handeler_clock()
         {
+            _Fetch = new Queue<string>();
+            _Decode = new Queue<string>();
+            _Excude = new Queue<string>();
+            _Memory = new Queue<string>();
+            _Write_back = new Queue<string>();
+
             _Fetch.Enqueue(PC);  // refer to operation
 
             // Decode gape
@@ -361,7 +367,7 @@ namespace Archi_Emulator
         // Fetch state
         public void Fetch()
         {
-            string _PC = null;
+            string _PC = "0000";
             
             if (_Fetch.Count != 0)
             {
@@ -369,7 +375,7 @@ namespace Archi_Emulator
             }
 
 
-            if (mem_intruction.ContainsKey(PC))
+            if (mem_intruction.ContainsKey(_PC))
             {
                 string instruction = (string)mem_intruction[PC];
 
@@ -386,6 +392,7 @@ namespace Archi_Emulator
             else
             {
                 PC = "0000";
+                w_IF_ID = "";
                 // End of PC sequance
             }
             
@@ -410,13 +417,15 @@ namespace Archi_Emulator
         {
             if (_Decode.Count != 0)
             {
-               r_IF_ID = _Decode.Dequeue();
+                r_IF_ID = _Decode.Dequeue();
                 if (r_IF_ID == operation)
                     return;
             }
             else
+            {
+                w_ID_EX = "";
                 return;
-
+            }
             string read_reg1 = null, read_reg2= null, address_extented = null, rt = null, rd=null;
 
             string[] if_id = r_IF_ID.Split(_spliter);  //get the register PL value
@@ -464,8 +473,10 @@ namespace Archi_Emulator
                     return;
             }
             else
+            {
+                w_EX_MEM = "";
                 return;
-
+            }
             string[] id_ex = r_ID_EX.Split(op_spliter[0]);
 
             string control_bits = id_ex[0];
@@ -488,13 +499,15 @@ namespace Archi_Emulator
         {
             if (_Memory.Count != 0)
             {
-               r_EX_MEM = _Memory.Dequeue();
+                r_EX_MEM = _Memory.Dequeue();
                 if (r_EX_MEM == operation)
                     return;
             }
             else
+            {
+                w_MEM_WB = "";
                 return;
-
+            }
             string[] ex_mem = r_EX_MEM.Split(op_spliter[0]);
             string control_bits = ex_mem[0];
             string reg_dst = ex_mem[5];
@@ -523,7 +536,6 @@ namespace Archi_Emulator
             }
             else
                 return;
-
             string[] mem_wb = r_MEM_WB.Split(op_spliter[0]);
             string control_bits = mem_wb[0];
 
